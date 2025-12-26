@@ -75,7 +75,7 @@ public class TowersssGameGUI extends JFrame {
     private boolean showHeatMap = true;
     private double[][] heatMapValues = new double[N][N];
 
-    public TowersGameGUI() {
+    public TowersssGameGUI() {
         setTitle("Towers Puzzle - 4×4 with 4 AI Strategies");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BorderLayout(20, 20));
