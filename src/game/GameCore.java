@@ -1,6 +1,6 @@
 package game;
 import java.util.*;
-
+//core class of the game file
 //VERTEX CLASS
 class Vertex {
     int row, col, position;
