@@ -1,7 +1,7 @@
 
 
 ## Project Overview
-This project implements an interactive **4×4 Towers Puzzle Game** featuring a competitive AI opponent that employs four distinct **greedy algorithm strategies**. Built in Java with Swing GUI, the application demonstrates practical applications of greedy algorithms in game AI and constraint satisfaction problems.
+This project implements an interactive **4×4 Towers Puzzle Game** featuring the CPU as a competitive opponent that employs four distinct **greedy algorithm strategies**. Built in Java with Swing GUI, the application demonstrates practical applications of greedy algorithms in game AI and constraint satisfaction problems.
 
 ## What is the Towers Puzzle?
 The Towers Puzzle is a logic game where:
@@ -71,21 +71,23 @@ java game.TowersssGameGUI
 
 ## Project Structure
 ```
-game/
-├── TowersssGameGUI.java      # Main GUI and game controller
-├── GameState.java             # Game logic and validation
-├── PuzzleGenerator.java       # Generates valid puzzles
-├── StrategyLives.java         # Survival-focused greedy strategy
-├── StrategyCompletion.java    # Completion-focused greedy strategy
-├── StrategyScore.java         # Score-maximizing greedy strategy
-└── StrategyMRV.java          # Constraint-based greedy strategy
+src/game/
+├── CellSorter.java              # Shared intelligent sorting with center-preference tie-breaking
+├── GameCore.java                # Core game logic and state management
+├── PuzzleGenerator.java         # Generates valid Skyscraper puzzles with consistent clues
+├── StrategyCompletion.java      # Completion-Greedy (Rusher): Prioritizes nearly complete rows/columns
+├── StrategyLives.java           # Survival-Greedy: Focuses on maximizing legal options to preserve lives
+├── StrategyMRV.java             # Constraint-Greedy (MRV): Minimum Remaining Values heuristic
+├── StrategyScore.java           # Score-Greedy (Gambler): Maximizes immediate points from completions
+├── TowersssGameGUI.java         # Main GUI with modern design, heat map, CPU reasoning, and strategy selector
+└── README.md                    # Project documentation (this file)
 ```
 
 ## Game Mechanics
 - **Scoring:** +10 per correct move, +20 for completing rows/columns
 - **Lives System:** Start with 100 lives, lose 5 per invalid move
 - **Victory:** Complete board first, eliminate opponent, or achieve higher score
-- **Turn-based:** Human vs. AI with selectable strategies
+- **Turn-based:** Human vs. CPU with selectable strategies
 
 ## Educational Significance
 This project demonstrates:
@@ -93,14 +95,13 @@ This project demonstrates:
 2. **Heuristic evaluation** in constrained environments
 3. **Trade-offs** between different greedy approaches (optimal vs. practical)
 4. **Algorithm visualization** for understanding decision-making processes
-5. **Real-world application** of theoretical DSA concepts
 
 ## Algorithm Analysis
 | Strategy | Time Complexity | Space Complexity | Optimality |
 |----------|----------------|------------------|------------|
 | Lives    | O(N³)          | O(N²)            | Local      |
-| Completion | O(N³)        | O(N²)            | Local      |
-| Score    | O(N³)          | O(N²)            | Local      |
+| Completion | O(N^4)        | O(N²)            | Local      |
+| Score    | O(N^5)          | O(N²)            | Local      |
 | MRV      | O(N³)          | O(N²)            | Local      |
 
 *Note: Greedy algorithms provide locally optimal choices but don't guarantee global optimality.*
@@ -109,5 +110,5 @@ This project demonstrates:
 This implementation effectively illustrates how greedy algorithms can be applied to game AI, demonstrating that different greedy criteria lead to distinct behaviors and outcomes. The visual interface makes the abstract algorithmic concepts tangible and observable in real-time.
 
 ---
-**Course:** Data Structures and Algorithms (23CSE203)  
+**Course:** Design and Analysis of Algorithms (23CSE211)  
 **Focus:** Greedy Algorithms & Heuristic Problem Solving
