@@ -1,19 +1,17 @@
 package game;
 
 import javax.swing.*;
-import javax.swing.Timer;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.*;
-import java.util.*;
-import java.util.List;
 
-// ============================================================================
-// MAIN GUI - Towers Puzzle Game (4x4) with 4 Greedy Strategies + Adjacency List
-// ============================================================================
-
+// MAIN GUI - Towers Puzzle Game (4x4) with 4 Greedy Strategies
 public class TowersssGameGUI extends JFrame {
     private static final int N = 4;
+private static final int[] TOP = {1, 3, 2, 2};
+private static final int[] RIGHT = {3, 2, 1, 2};
+private static final int[] BOTTOM = {3, 1, 2, 2};
+private static final int[] LEFT = {1, 3, 2, 2};
 
     private GameState gameState;
     private StrategyLives strategyLives;
@@ -30,35 +28,6 @@ public class TowersssGameGUI extends JFrame {
     private JComboBox<String> strategyCombo;
     private JCheckBox heatMapToggle;
     private JTextArea reasoningArea;
-
-    // Adjacency List tracking
-    private Map<String, List<String>> adjacencyList = new LinkedHashMap<>();
-    private List<MoveNode> moveHistory = new ArrayList<>();
-    private int moveCounter = 0;
-
-    // Move node class to track move details
-    private static class MoveNode {
-        int id;
-        int row, col, value;
-        boolean isHuman;
-
-        MoveNode(int id, int row, int col, int value, boolean isHuman) {
-            this.id = id;
-            this.row = row;
-            this.col = col;
-            this.value = value;
-            this.isHuman = isHuman;
-        }
-
-        String getKey() {
-            return "M" + id + "[" + row + "," + col + "=" + value + "]" + (isHuman ? "(H)" : "(C)");
-        }
-
-        boolean isAdjacent(MoveNode other) {
-            // Adjacent if same row OR same column
-            return this.row == other.row || this.col == other.col;
-        }
-    }
 
     private enum Strategy {
         LIVES("Lives-Greedy (Survival)"),
@@ -79,130 +48,27 @@ public class TowersssGameGUI extends JFrame {
         setTitle("Towers Puzzle - 4×4 with 4 AI Strategies");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLayout(new BorderLayout(20, 20));
-        getContentPane().setBackground(new Color(15, 23, 42));
+        getContentPane().setBackground(new Color(15, 23, 42)); // Dark slate background
 
         initGame();
         initComponents();
 
         pack();
+        setMinimumSize(new Dimension(1000, 1000));   // forces a nice big window
+        setResizable(true);
         setLocationRelativeTo(null);
-        setResizable(false);
+        //setResizable(false);
         updateDisplay();
-
-        System.out.println("\n" + "=".repeat(70));
-        System.out.println("TOWERS GAME - MOVE ADJACENCY LIST TRACKER");
-        System.out.println("=".repeat(70));
-        System.out.println("Tracking move connections (same row/column relationships)");
-        System.out.println("=".repeat(70) + "\n");
     }
 
-    // ============================================================================
-    // ADJACENCY LIST METHODS
-    // ============================================================================
 
-    private void addMoveToAdjacencyList(int row, int col, int value, boolean isHuman) {
-        moveCounter++;
-        MoveNode newMove = new MoveNode(moveCounter, row, col, value, isHuman);
-        String newKey = newMove.getKey();
-
-        // Initialize adjacency list for this move
-        adjacencyList.put(newKey, new ArrayList<>());
-
-        // Check connections with all previous moves
-        for (MoveNode prevMove : moveHistory) {
-            if (newMove.isAdjacent(prevMove)) {
-                String prevKey = prevMove.getKey();
-
-                // Add bidirectional edge
-                adjacencyList.get(newKey).add(prevKey);
-                adjacencyList.get(prevKey).add(newKey);
-            }
-        }
-
-        moveHistory.add(newMove);
-        printAdjacencyList(newMove);
-    }
-
-    private void printAdjacencyList(MoveNode latestMove) {
-        System.out.println("\n" + "-".repeat(70));
-        System.out.println("Move #" + moveCounter + " → Cell[" + latestMove.row + "," + latestMove.col +
-                "] = " + latestMove.value + " by " + (latestMove.isHuman ? "HUMAN" : "CPU"));
-        System.out.println("-".repeat(70));
-
-        // Print the adjacency list
-        System.out.println("\nCURRENT ADJACENCY LIST:");
-        System.out.println("─".repeat(70));
-
-        for (Map.Entry<String, List<String>> entry : adjacencyList.entrySet()) {
-            String node = entry.getKey();
-            List<String> neighbors = entry.getValue();
-
-            System.out.print(node + " → ");
-            if (neighbors.isEmpty()) {
-                System.out.println("[ No adjacent moves ]");
-            } else {
-                System.out.println(neighbors);
-            }
-        }
-
-        System.out.println("─".repeat(70));
-        System.out.println("Total Moves: " + moveCounter + " | Nodes: " + adjacencyList.size() +
-                " | Edges: " + countEdges());
-        System.out.println();
-    }
-
-    private int countEdges() {
-        int count = 0;
-        for (List<String> neighbors : adjacencyList.values()) {
-            count += neighbors.size();
-        }
-        return count / 2; // Each edge is counted twice (bidirectional)
-    }
-
-    private void printFinalAdjacencyStats() {
-        System.out.println("\n" + "=".repeat(70));
-        System.out.println("FINAL ADJACENCY LIST STATISTICS");
-        System.out.println("=".repeat(70));
-        System.out.println("Total Moves Made: " + moveCounter);
-        System.out.println("Total Nodes: " + adjacencyList.size());
-        System.out.println("Total Edges: " + countEdges());
-
-        // Find most connected move
-        String mostConnected = null;
-        int maxConnections = 0;
-        for (Map.Entry<String, List<String>> entry : adjacencyList.entrySet()) {
-            if (entry.getValue().size() > maxConnections) {
-                maxConnections = entry.getValue().size();
-                mostConnected = entry.getKey();
-            }
-        }
-
-        if (mostConnected != null) {
-            System.out.println("Most Connected Move: " + mostConnected +
-                    " with " + maxConnections + " connections");
-        }
-
-        System.out.println("=".repeat(70) + "\n");
-    }
-
-    private void resetAdjacencyList() {
-        adjacencyList.clear();
-        moveHistory.clear();
-        moveCounter = 0;
-
-        System.out.println("\n" + "=".repeat(70));
-        System.out.println("GAME RESET - Adjacency List Cleared");
-        System.out.println("=".repeat(70) + "\n");
-    }
-
-    // ============================================================================
     // GAME INITIALIZATION
-    // ============================================================================
-
     private void initGame() {
+        // Generate a valid puzzle with consistent clues
         PuzzleGenerator generator = new PuzzleGenerator();
         PuzzleGenerator.PuzzleData puzzle = generator.generatePuzzle();
 
+        // Initialize game state with generated clues
         gameState = new GameState(
                 puzzle.topClues,
                 puzzle.rightClues,
@@ -210,30 +76,28 @@ public class TowersssGameGUI extends JFrame {
                 puzzle.leftClues
         );
 
+        // Initialize strategies
         strategyLives = new StrategyLives(gameState);
         strategyCompletion = new StrategyCompletion(gameState);
         strategyScore = new StrategyScore(gameState);
         strategyMRV = new StrategyMRV(gameState);
     }
 
-    // ============================================================================
     // GUI COMPONENTS
-    // ============================================================================
-
     private void initComponents() {
-        // Top stats panel with glassmorphism
-        JPanel topPanel = new JPanel(new GridLayout(1, 4, 20, 0));
+
+        JPanel topPanel = new JPanel(new GridLayout(2, 2, 15, 8));
         topPanel.setOpaque(false);
         topPanel.setBorder(BorderFactory.createEmptyBorder(20, 25, 15, 25));
 
-        humanScoreLabel = createModernStatCard(" YOUR SCORE", "0", new Color(59, 130, 246), new Color(30, 58, 138));
-        humanLivesLabel = createModernStatCard(" YOUR LIVES", "100", new Color(16, 185, 129), new Color(6, 78, 59));
-        cpuScoreLabel = createModernStatCard(" CPU SCORE", "0", new Color(168, 85, 247), new Color(88, 28, 135));
-        cpuLivesLabel = createModernStatCard(" CPU LIVES", "100", new Color(239, 68, 68), new Color(127, 29, 29));
+        humanScoreLabel = createLabel("YOU - Score: 0", new Color(59, 130, 246), new Color(30, 58, 138));
+        cpuScoreLabel = createLabel("CPU - Score: 0", new Color(168, 85, 247), new Color(88, 28, 135));
+        humanLivesLabel = createLabel("Lives: 100", new Color(16, 185, 129), new Color(6, 78, 59));
+        cpuLivesLabel = createLabel("Lives: 100", new Color(239, 68, 68), new Color(127, 29, 29));
 
         topPanel.add(humanScoreLabel);
-        topPanel.add(humanLivesLabel);
         topPanel.add(cpuScoreLabel);
+        topPanel.add(humanLivesLabel);
         topPanel.add(cpuLivesLabel);
         add(topPanel, BorderLayout.NORTH);
 
@@ -242,184 +106,186 @@ public class TowersssGameGUI extends JFrame {
         boardPanel.setOpaque(false);
         boardPanel.setBorder(BorderFactory.createEmptyBorder(10, 25, 10, 25));
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(6, 6, 6, 6);
+        gbc.insets = new Insets(3, 3, 3, 3);
 
         // Top clues with modern styling
         for (int i = 0; i < N; i++) {
             gbc.gridx = i + 1; gbc.gridy = 0;
-            boardPanel.add(createModernClue(gameState.getTopClues()[i], "↓"), gbc);
+            boardPanel.add(createClue(TOP[i]), gbc);
         }
 
         // Board with left/right clues
         for (int r = 0; r < N; r++) {
             gbc.gridx = 0; gbc.gridy = r + 1;
-            boardPanel.add(createModernClue(gameState.getLeftClues()[r], "→"), gbc);
-
+            boardPanel.add(createClue(LEFT[r]), gbc);
             for (int c = 0; c < N; c++) {
                 final int row = r, col = c;
-                JButton btn = new ModernCellButton("");
-                btn.setPreferredSize(new Dimension(95, 95));
-                btn.setFont(new Font("Segoe UI", Font.BOLD, 42));
+                JButton btn = new JButton("");
+                btn.setPreferredSize(new Dimension(75, 75));
+                btn.setFont(new Font("Arial", Font.BOLD, 32));
+                btn.setBackground(Color.WHITE);
                 btn.setFocusPainted(false);
+                btn.setBorder(BorderFactory.createLineBorder(new Color(200,200,200), 2));
                 btn.setCursor(new Cursor(Cursor.HAND_CURSOR));
                 btn.addActionListener(e -> handleCellClick(row, col));
-
-                // Hover effect
-                btn.addMouseListener(new MouseAdapter() {
-                    public void mouseEntered(MouseEvent e) {
-                        if (btn.isEnabled() && gameState.getGrid()[row][col] == 0) {
-                            btn.setBorder(BorderFactory.createLineBorder(new Color(59, 130, 246), 3));
-                        }
-                    }
-                    public void mouseExited(MouseEvent e) {
-                        if (row != selectedRow || col != selectedCol) {
-                            btn.setBorder(BorderFactory.createLineBorder(new Color(51, 65, 85), 2));
-                        }
-                    }
-                });
-
                 cellButtons[r][c] = btn;
                 gbc.gridx = c + 1; gbc.gridy = r + 1;
                 boardPanel.add(btn, gbc);
             }
 
             gbc.gridx = N + 1; gbc.gridy = r + 1;
-            boardPanel.add(createModernClue(gameState.getRightClues()[r], "←"), gbc);
+            boardPanel.add(createClue(RIGHT[r]), gbc);
         }
 
         // Bottom clues
         for (int i = 0; i < N; i++) {
             gbc.gridx = i + 1; gbc.gridy = N + 1;
-            boardPanel.add(createModernClue(gameState.getBottomClues()[i], "↑"), gbc);
+            boardPanel.add(createClue(BOTTOM[i]), gbc);
         }
         add(boardPanel, BorderLayout.CENTER);
 
-        // Right control panel with modern design
-        JPanel rightPanel = new JPanel();
-        rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
-        rightPanel.setOpaque(false);
-        rightPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 25));
-        rightPanel.setPreferredSize(new Dimension(340, 0));
+        // Right control panel with modern design - CLEAN & ALIGNED
+JPanel rightPanel = new JPanel();
+rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
+rightPanel.setOpaque(false);
+rightPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));  // padding around whole panel
+rightPanel.setPreferredSize(new Dimension(360, 0));  // slightly wider for breathing room
 
-        // Strategy selector with modern card
-        JPanel strategyCard = createModernCard();
-        strategyCard.setLayout(new BoxLayout(strategyCard, BoxLayout.Y_AXIS));
+// === STRATEGY CARD ===
+JPanel strategyCard = createModernCard();
+strategyCard.setLayout(new BoxLayout(strategyCard, BoxLayout.Y_AXIS));
+strategyCard.setAlignmentX(CENTER_ALIGNMENT);
+strategyCard.setMaximumSize(new Dimension(320, 140));
 
-        JLabel stratLabel = new JLabel(" CPU STRATEGY");
-        stratLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        stratLabel.setForeground(new Color(148, 163, 184));
-        stratLabel.setAlignmentX(LEFT_ALIGNMENT);
+JLabel stratLabel = new JLabel(" CPU STRATEGY");
+stratLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
+stratLabel.setForeground(new Color(148, 163, 184));
+stratLabel.setAlignmentX(CENTER_ALIGNMENT);
 
-        strategyCombo = new JComboBox<>();
-        for (Strategy s : Strategy.values()) strategyCombo.addItem(s.toString());
-        strategyCombo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        strategyCombo.setMaximumSize(new Dimension(300, 40));
-        strategyCombo.setAlignmentX(LEFT_ALIGNMENT);
-        strategyCombo.setBackground(new Color(30, 41, 59));
-        strategyCombo.setForeground(Color.WHITE);
-        strategyCombo.addActionListener(e -> {
-            currentStrategy = Strategy.values()[strategyCombo.getSelectedIndex()];
-            updateHeatMap();
-            updateDisplay();
-        });
+strategyCombo = new JComboBox<>();
+for (Strategy s : Strategy.values()) strategyCombo.addItem(s.toString());
+strategyCombo.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+strategyCombo.setMaximumSize(new Dimension(300, 40));
+strategyCombo.setAlignmentX(CENTER_ALIGNMENT);
+strategyCombo.setBackground(new Color(30, 41, 59));
+strategyCombo.setForeground(Color.WHITE);
+strategyCombo.addActionListener(e -> {
+    currentStrategy = Strategy.values()[strategyCombo.getSelectedIndex()];
+    updateHeatMap();
+    updateDisplay();
+});
 
-        strategyCard.add(stratLabel);
-        strategyCard.add(Box.createVerticalStrut(10));
-        strategyCard.add(strategyCombo);
+heatMapToggle = new JCheckBox(" Show Heat Map", true);
+heatMapToggle.setFont(new Font("Segoe UI", Font.BOLD, 14));
+heatMapToggle.setForeground(Color.WHITE);
+heatMapToggle.setOpaque(false);
+heatMapToggle.setAlignmentX(CENTER_ALIGNMENT);
+heatMapToggle.addActionListener(e -> {
+    showHeatMap = heatMapToggle.isSelected();
+    updateDisplay();
+});
 
-        heatMapToggle = new JCheckBox(" Show Heat Map", true);
-        heatMapToggle.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        heatMapToggle.setForeground(Color.WHITE);
-        heatMapToggle.setOpaque(false);
-        heatMapToggle.setAlignmentX(LEFT_ALIGNMENT);
-        heatMapToggle.addActionListener(e -> {
-            showHeatMap = heatMapToggle.isSelected();
-            updateDisplay();
-        });
+strategyCard.add(Box.createVerticalStrut(10));
+strategyCard.add(stratLabel);
+strategyCard.add(Box.createVerticalStrut(10));
+strategyCard.add(strategyCombo);
+strategyCard.add(Box.createVerticalStrut(15));
+strategyCard.add(heatMapToggle);
+strategyCard.add(Box.createVerticalStrut(10));
 
-        strategyCard.add(Box.createVerticalStrut(15));
-        strategyCard.add(heatMapToggle);
+rightPanel.add(strategyCard);
+rightPanel.add(Box.createVerticalStrut(25)); 
 
-        JButton resetBtn = createModernButton(" New Game", new Color(59, 130, 246));
-        resetBtn.setAlignmentX(LEFT_ALIGNMENT);
-        resetBtn.addActionListener(e -> resetGame());
+// === NEW GAME BUTTON ===
+JButton resetBtn = createModernButton("🔄 New Game", new Color(59, 130, 246));
+resetBtn.setAlignmentX(CENTER_ALIGNMENT);
+resetBtn.setMaximumSize(new Dimension(300, 55));
+resetBtn.setFont(new Font("Segoe UI", Font.BOLD, 12));
+resetBtn.addActionListener(e -> resetGame());
 
-        rightPanel.add(strategyCard);
-        rightPanel.add(Box.createVerticalStrut(15));
-        rightPanel.add(resetBtn);
-        rightPanel.add(Box.createVerticalStrut(20));
+rightPanel.add(resetBtn);
+rightPanel.add(Box.createVerticalStrut(25));
 
-        // CPU Reasoning Card
-        JPanel reasoningCard = createModernCard();
-        reasoningCard.setLayout(new BoxLayout(reasoningCard, BoxLayout.Y_AXIS));
-        reasoningCard.setMaximumSize(new Dimension(300, 280));
+// === CPU REASONING CARD ===
+JPanel reasoningCard = createModernCard();
+reasoningCard.setLayout(new BoxLayout(reasoningCard, BoxLayout.Y_AXIS));
+reasoningCard.setAlignmentX(CENTER_ALIGNMENT);
+reasoningCard.setMaximumSize(new Dimension(320, 300)); 
 
-        JLabel reasonLabel = new JLabel(" CPU REASONING");
-        reasonLabel.setFont(new Font("Segoe UI", Font.BOLD, 13));
-        reasonLabel.setForeground(new Color(148, 163, 184));
-        reasonLabel.setAlignmentX(LEFT_ALIGNMENT);
+JLabel reasonLabel = new JLabel("💭 CPU REASONING");
+reasonLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
+reasonLabel.setForeground(new Color(148, 163, 184));
+reasonLabel.setAlignmentX(CENTER_ALIGNMENT);
 
-        reasoningArea = new JTextArea(12, 25);
-        reasoningArea.setEditable(false);
-        reasoningArea.setFont(new Font("Consolas", Font.PLAIN, 12));
-        reasoningArea.setLineWrap(true);
-        reasoningArea.setWrapStyleWord(true);
-        reasoningArea.setBackground(new Color(15, 23, 42));
-        reasoningArea.setForeground(new Color(203, 213, 225));
-        reasoningArea.setCaretColor(Color.WHITE);
-        reasoningArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        reasoningArea.setText("Select a strategy and watch the CPU think...");
+reasoningArea = new JTextArea(10, 25);
+reasoningArea.setEditable(false);
+reasoningArea.setFont(new Font("Consolas", Font.PLAIN, 13));
+reasoningArea.setLineWrap(true);
+reasoningArea.setWrapStyleWord(true);
+reasoningArea.setBackground(new Color(15, 23, 42));
+reasoningArea.setForeground(new Color(203, 213, 225));
+reasoningArea.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+reasoningArea.setText("Select a strategy and watch the CPU think...");
 
-        JScrollPane reasonScroll = new JScrollPane(reasoningArea);
-        reasonScroll.setBorder(null);
-        reasonScroll.setOpaque(false);
-        reasonScroll.getViewport().setOpaque(false);
+JScrollPane reasonScroll = new JScrollPane(reasoningArea);
+reasonScroll.setBorder(BorderFactory.createLineBorder(new Color(51, 65, 85), 1));
+reasonScroll.setOpaque(false);
+reasonScroll.getViewport().setOpaque(false);
 
-        reasoningCard.add(reasonLabel);
-        reasoningCard.add(Box.createVerticalStrut(10));
-        reasoningCard.add(reasonScroll);
+reasoningCard.add(Box.createVerticalStrut(5));
+reasoningCard.add(reasonLabel);
+reasoningCard.add(Box.createVerticalStrut(5));
+reasoningCard.add(reasonScroll);
+reasoningCard.add(Box.createVerticalStrut(5));
 
-        rightPanel.add(reasoningCard);
-        rightPanel.add(Box.createVerticalStrut(20));
+rightPanel.add(reasoningCard);
+rightPanel.add(Box.createVerticalStrut(25));  
 
-        // Value selection panel with modern design
-        valueSelectionPanel = new JPanel();
-        valueSelectionPanel.setLayout(new BoxLayout(valueSelectionPanel, BoxLayout.Y_AXIS));
-        valueSelectionPanel.setBackground(new Color(30, 41, 59));
-        valueSelectionPanel.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(new Color(59, 130, 246), 3),
-                BorderFactory.createEmptyBorder(15, 15, 15, 15)));
-        valueSelectionPanel.setMaximumSize(new Dimension(300, 280));
-        valueSelectionPanel.setVisible(false);
+// === VALUE SELECTION PANEL ===
+valueSelectionPanel = new JPanel();
+valueSelectionPanel.setLayout(new BoxLayout(valueSelectionPanel, BoxLayout.Y_AXIS));
+valueSelectionPanel.setBackground(new Color(30, 41, 59));
+valueSelectionPanel.setBorder(BorderFactory.createCompoundBorder(
+    BorderFactory.createLineBorder(new Color(59, 130, 246), 3),
+    BorderFactory.createEmptyBorder(6, 6, 6, 6)
+));
+valueSelectionPanel.setMaximumSize(new Dimension(280, 200));
+valueSelectionPanel.setAlignmentX(CENTER_ALIGNMENT);
+valueSelectionPanel.setVisible(false);
 
-        JLabel selectLabel = new JLabel("SELECT VALUE");
-        selectLabel.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        selectLabel.setForeground(new Color(59, 130, 246));
-        selectLabel.setAlignmentX(CENTER_ALIGNMENT);
+JLabel selectLabel = new JLabel("SELECT VALUE");
+selectLabel.setFont(new Font("Segoe UI", Font.BOLD, 12));
+selectLabel.setForeground(new Color(59, 130, 246));
+selectLabel.setAlignmentX(CENTER_ALIGNMENT);
 
-        JPanel valGrid = new JPanel(new GridLayout(2, 2, 15, 15));
-        valGrid.setOpaque(false);
-        for (int i = 0; i < N; i++) {
-            final int val = i + 1;
-            JButton btn = createModernValueButton(String.valueOf(val));
-            btn.addActionListener(e -> handleValueClick(val));
-            valueButtons[i] = btn;
-            valGrid.add(btn);
-        }
+JPanel valGrid = new JPanel(new GridLayout(2, 2, 8, 8));
+valGrid.setOpaque(false);
+for (int i = 0; i < N; i++) {
+    final int val = i + 1;
+    JButton btn = createModernValueButton(String.valueOf(val));
+    btn.addActionListener(e -> handleValueClick(val));
+    valueButtons[i] = btn;
+    valGrid.add(btn);
+}
 
-        JButton cancelBtn = createModernButton("✖ Cancel", new Color(239, 68, 68));
-        cancelBtn.setAlignmentX(CENTER_ALIGNMENT);
-        cancelBtn.addActionListener(e -> {
-            selectedRow = -1; selectedCol = -1;
-            valueSelectionPanel.setVisible(false);
-            updateDisplay();
-        });
+JButton cancelBtn = createModernButton("Cancel", new Color(239, 68, 68));
+cancelBtn.setAlignmentX(CENTER_ALIGNMENT);
+cancelBtn.setMaximumSize(new Dimension(180, 25));
+cancelBtn.addActionListener(e -> {
+    selectedRow = -1; selectedCol = -1;
+    valueSelectionPanel.setVisible(false);
+    updateDisplay();
+});
 
-        valueSelectionPanel.add(selectLabel);
-        valueSelectionPanel.add(Box.createVerticalStrut(15));
-        valueSelectionPanel.add(valGrid);
-        valueSelectionPanel.add(Box.createVerticalStrut(15));
-        valueSelectionPanel.add(cancelBtn);
+valueSelectionPanel.add(selectLabel);
+valueSelectionPanel.add(Box.createVerticalStrut(6));
+valueSelectionPanel.add(valGrid);
+valueSelectionPanel.add(Box.createVerticalStrut(10));
+valueSelectionPanel.add(cancelBtn);
+
+rightPanel.add(valueSelectionPanel);
+
+add(rightPanel, BorderLayout.EAST);
 
         rightPanel.add(valueSelectionPanel);
         add(rightPanel, BorderLayout.EAST);
@@ -430,7 +296,7 @@ public class TowersssGameGUI extends JFrame {
         bottomPanel.setBorder(BorderFactory.createEmptyBorder(15, 25, 25, 25));
 
         statusLabel = new JLabel("Your turn! Click an empty cell.", SwingConstants.CENTER);
-        statusLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        statusLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
         statusLabel.setForeground(Color.WHITE);
         statusLabel.setOpaque(true);
         statusLabel.setBackground(new Color(30, 41, 59));
@@ -442,14 +308,26 @@ public class TowersssGameGUI extends JFrame {
         add(bottomPanel, BorderLayout.SOUTH);
     }
 
-    // Modern UI component creators
+
+    private JLabel createLabel(String txt, Color fg, Color bg) {
+        JLabel l = new JLabel(txt, SwingConstants.CENTER);
+        l.setFont(new Font("Segoe UI", Font.BOLD, 16));
+        l.setForeground(fg);
+        l.setOpaque(true);
+        l.setBackground(bg);
+        l.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(fg.brighter(), 2),
+            BorderFactory.createEmptyBorder(10, 20, 10, 20)));
+        return l;
+    }
+
     private JPanel createModernCard() {
         JPanel card = new JPanel();
         card.setBackground(new Color(30, 41, 59));
         card.setBorder(BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(new Color(51, 65, 85), 2),
                 BorderFactory.createEmptyBorder(15, 15, 15, 15)));
-        card.setMaximumSize(new Dimension(300, 200));
+        card.setMaximumSize(new Dimension(280, 200));
         return card;
     }
 
@@ -477,8 +355,8 @@ public class TowersssGameGUI extends JFrame {
 
     private JButton createModernValueButton(String text) {
         JButton btn = new JButton(text);
-        btn.setPreferredSize(new Dimension(80, 80));
-        btn.setFont(new Font("Segoe UI", Font.BOLD, 36));
+        btn.setPreferredSize(new Dimension(55, 55));
+        btn.setFont(new Font("Segoe UI", Font.BOLD, 28));
         btn.setBackground(new Color(59, 130, 246));
         btn.setForeground(Color.WHITE);
         btn.setFocusPainted(false);
@@ -497,47 +375,35 @@ public class TowersssGameGUI extends JFrame {
         return btn;
     }
 
-    private JLabel createModernStatCard(String title, String value, Color accent, Color dark) {
-        JPanel container = new JPanel();
-        container.setLayout(new BoxLayout(container, BoxLayout.Y_AXIS));
-        container.setOpaque(true);
-        container.setBackground(new Color(30, 41, 59));
-        container.setBorder(BorderFactory.createCompoundBorder(
-                BorderFactory.createLineBorder(accent, 2),
-                BorderFactory.createEmptyBorder(12, 15, 12, 15)));
-
-        JLabel titleLabel = new JLabel(title);
-        titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 11));
-        titleLabel.setForeground(new Color(148, 163, 184));
-        titleLabel.setAlignmentX(CENTER_ALIGNMENT);
-
-        JLabel valueLabel = new JLabel(value);
-        valueLabel.setFont(new Font("Segoe UI", Font.BOLD, 24));
-        valueLabel.setForeground(accent);
-        valueLabel.setAlignmentX(CENTER_ALIGNMENT);
-
-        container.add(titleLabel);
-        container.add(Box.createVerticalStrut(5));
-        container.add(valueLabel);
-
-        JLabel wrapper = new JLabel();
-        wrapper.setLayout(new BorderLayout());
-        wrapper.add(container);
-        return wrapper;
-    }
+    
+    private JLabel createClue(int v) {
+        JLabel l = new JLabel(String.valueOf(v), SwingConstants.CENTER);
+        l.setFont(new Font("Arial", Font.BOLD, 20));
+        l.setForeground(new Color(79, 70, 229));
+        l.setPreferredSize(new Dimension(40, 40));
+        return l;}
 
     private JLabel createModernClue(int v, String arrow) {
-        JLabel l = new JLabel("<html><center>" + arrow + "<br><b>" + v + "</b></center></html>", SwingConstants.CENTER);
-        l.setFont(new Font("Segoe UI", Font.BOLD, 18));
-        l.setForeground(new Color(148, 163, 184));
-        l.setOpaque(true);
-        l.setBackground(new Color(30, 41, 59));
-        l.setBorder(BorderFactory.createLineBorder(new Color(51, 65, 85), 2));
-        l.setPreferredSize(new Dimension(55, 55));
-        return l;
+    String html;
+    if (arrow.equals("→") || arrow.equals("←")) {
+        html = "<html><center>" + (arrow.equals("→") ? arrow + " <b>" + v + "</b>" : "<b>" + v + "</b> " + arrow) + "</center></html>";
+    } else {
+        html = "<html><center>" + arrow + "<br><b>" + v + "</b></center></html>";
     }
+    JLabel l = new JLabel(html, SwingConstants.CENTER);
+    l.setFont(new Font("Segoe UI", Font.BOLD, 16));  // Reduced from 18 to fit better in square
+    l.setForeground(new Color(148, 163, 184));
+    l.setOpaque(true);
+    l.setBackground(new Color(30, 41, 59));
+    //l.setBorder(BorderFactory.createLineBorder(new Color(51, 65, 85), 2));
+    l.setBorder(BorderFactory.createCompoundBorder(
+    BorderFactory.createLineBorder(new Color(71, 85, 105), 3),
+    BorderFactory.createEmptyBorder(5, 5, 5, 5)
+));
+    l.setPreferredSize(new Dimension(95, 95));  // Match cell size for uniformity
+    return l;
+}
 
-    // Custom cell button with rounded corners
     class ModernCellButton extends JButton {
         public ModernCellButton(String text) {
             super(text);
@@ -571,10 +437,7 @@ public class TowersssGameGUI extends JFrame {
         }
     }
 
-    // ============================================================================
     // USER INTERACTION
-    // ============================================================================
-
     private void handleCellClick(int r, int c) {
         if (!gameState.isHumanTurn() || gameState.isGameOver() || gameState.getGrid()[r][c] != 0) {
             return;
@@ -593,11 +456,7 @@ public class TowersssGameGUI extends JFrame {
 
         for (int i = 0; i < N; i++) {
             int val = i + 1;
-            boolean legal = gameState.getGraph().canPlace(
-                    gameState.getGrid(), selectedRow, selectedCol, val,
-                    leftClues[selectedRow], rightClues[selectedRow],
-                    topClues[selectedCol], bottomClues[selectedCol]
-            );
+            boolean legal = gameState.checkLegalMove(selectedRow, selectedCol, val);
             valueButtons[i].setEnabled(legal);
             valueButtons[i].setBackground(legal ? new Color(59, 130, 246) : new Color(71, 85, 105));
         }
@@ -608,39 +467,62 @@ public class TowersssGameGUI extends JFrame {
     private void handleValueClick(int val) {
         if (selectedRow == -1) return;
 
-        gameState.makeMove(selectedRow, selectedCol, val, true);
+        // Check for deadlock BEFORE allowing move
+        if (gameState.checkForDeadlock(true)) {
+            statusLabel.setText("You have no legal moves! -5 lives, skipping turn");
+            selectedRow = -1;
+            selectedCol = -1;
+            valueSelectionPanel.setVisible(false);
+            gameState.setHumanTurn(false);
+            updateDisplay();
+            
+            Timer delay = new Timer(1500, e -> {
+                if (!checkGameEnd()) {
+                    updateHeatMap();
+                    animateHeatMap(0);
+                }
+            });
+            delay.setRepeats(false);
+            delay.start();
+            return;
+        }
 
-        // Add to adjacency list
-        addMoveToAdjacencyList(selectedRow, selectedCol, val, true);
+        boolean moveAccepted = gameState.makeMove(selectedRow, selectedCol, val, true);
+        
 
         selectedRow = -1;
         selectedCol = -1;
         valueSelectionPanel.setVisible(false);
-        gameState.setHumanTurn(false);
-
+        
+        // ONLY switch turns if move was valid (not rejected)
+        if (moveAccepted) {
+            gameState.setHumanTurn(false);
+        }
+        
+        // Clear heat map immediately after human move
         clearHeatMap();
         updateDisplay();
 
         if (checkGameEnd()) return;
 
-        Timer delay = new Timer(600, e -> {
-            updateHeatMap();
-            animateHeatMap(0);
-        });
-        delay.setRepeats(false);
-        delay.start();
+        // Only proceed to CPU turn if move was accepted
+        if (moveAccepted) {
+            Timer delay = new Timer(600, e -> {
+                updateHeatMap();
+                animateHeatMap(0);
+            });
+            delay.setRepeats(false);
+            delay.start();
+        }
     }
 
-    // ============================================================================
     // HEAT MAP ANIMATION & COLORS
-    // ============================================================================
-
     private void animateHeatMap(int idx) {
         if (idx >= N * N) {
             Timer delay = new Timer(1200, e -> {
                 if (!gameState.isGameOver()) {
                     doCPUMove();
-                    clearHeatMap();
+                    clearHeatMap(); // Clear heat map after CPU move
                     gameState.setHumanTurn(true);
                     updateDisplay();
                     checkGameEnd();
@@ -661,7 +543,7 @@ public class TowersssGameGUI extends JFrame {
         t.start();
     }
 
-  /*  private Color getHeatColor(double h) {
+    private Color getHeatColor(double h) {
         if (h < 0.01) return new Color(30, 41, 59);
 
         double ratio = Math.min(h, 1.0);
@@ -671,44 +553,6 @@ public class TowersssGameGUI extends JFrame {
             case COMPLETION ->  new Color(239 + (int)(15 * ratio), 68 + (int)(82 * ratio), 68 + (int)(82 * ratio));
             case SCORE ->       new Color(255, 165 + (int)(90 * ratio), 0);
             case MRV ->         new Color(130 + (int)(56 * ratio), 39, 144 + (int)(64 * ratio));
-        };
-    }*/
-
-
-    private Color getHeatColor(double h) {
-        if (h < 0.01) return new Color(30, 41, 59);
-
-        double ratio = Math.min(h, 1.0);
-
-        return switch (currentStrategy) {
-            case LIVES -> {
-                // Bright emerald green gradient (light to vibrant)
-                int r = 110 + (int)(106 * ratio);  // 110 -> 216
-                int g = 231 + (int)(0 * ratio);     // 231 -> 231 (keep bright)
-                int b = 183 + (int)(-71 * ratio);   // 183 -> 112
-                yield new Color(r, g, b);
-            }
-            case COMPLETION -> {
-                // Bright coral/salmon gradient (light to intense)
-                int r = 252 + (int)(0 * ratio);     // 252 -> 252 (keep bright)
-                int g = 165 + (int)(-80 * ratio);   // 165 -> 85
-                int b = 165 + (int)(-80 * ratio);   // 165 -> 85
-                yield new Color(r, g, b);
-            }
-            case SCORE -> {
-                // Bright gold/amber gradient (light to vibrant orange)
-                int r = 253 + (int)(0 * ratio);     // 253 -> 253 (keep bright)
-                int g = 224 + (int)(-74 * ratio);   // 224 -> 150
-                int b = 71 + (int)(-71 * ratio);    // 71 -> 0
-                yield new Color(r, g, b);
-            }
-            case MRV -> {
-                // Bright purple/magenta gradient (light to vivid)
-                int r = 216 + (int)(22 * ratio);    // 216 -> 238
-                int g = 180 + (int)(-86 * ratio);   // 180 -> 94
-                int b = 254 + (int)(-48 * ratio);   // 254 -> 206
-                yield new Color(r, g, b);
-            }
         };
     }
 
@@ -724,11 +568,16 @@ public class TowersssGameGUI extends JFrame {
         }
     }
 
-    // ============================================================================
     // CPU MOVE
-    // ============================================================================
-
     private void doCPUMove() {
+        // Check for deadlock for CPU
+        if (gameState.checkForDeadlock(false)) {
+            statusLabel.setText("CPU has no legal moves! -5 lives, skipping turn");
+            gameState.setHumanTurn(true);
+            updateDisplay();
+            return;
+        }
+        
         int[] move = switch (currentStrategy) {
             case LIVES -> strategyLives.findBestMove();
             case COMPLETION -> strategyCompletion.findBestMove();
@@ -744,11 +593,9 @@ public class TowersssGameGUI extends JFrame {
         }
 
         reasoningArea.setText(gameState.getCpuReasoningExplanation());
-        gameState.makeMove(move[0], move[1], move[2], false);
+        boolean moveAccepted = gameState.makeMove(move[0], move[1], move[2], false);
 
-        // Add to adjacency list
-        addMoveToAdjacencyList(move[0], move[1], move[2], false);
-
+        // Clear heat map values after CPU move
         for (int r = 0; r < N; r++) {
             for (int c = 0; c < N; c++) {
                 heatMapValues[r][c] = 0;
@@ -756,10 +603,7 @@ public class TowersssGameGUI extends JFrame {
         }
     }
 
-    // ============================================================================
     // HEAT MAP CALCULATION
-    // ============================================================================
-
     private void updateHeatMap() {
         double max = 0;
         for (int r = 0; r < N; r++) {
@@ -788,10 +632,7 @@ public class TowersssGameGUI extends JFrame {
         }
     }
 
-    // ============================================================================
     // DISPLAY UPDATE
-    // ============================================================================
-
     private void updateDisplay() {
         for (int r = 0; r < N; r++) {
             for (int c = 0; c < N; c++) {
@@ -818,39 +659,25 @@ public class TowersssGameGUI extends JFrame {
             }
         }
 
-        updateStatCard(humanScoreLabel, String.valueOf(gameState.getHumanScore()));
-        updateStatCard(humanLivesLabel, String.valueOf(gameState.getHumanLives()));
-        updateStatCard(cpuScoreLabel, String.valueOf(gameState.getCpuScore()));
-        updateStatCard(cpuLivesLabel, String.valueOf(gameState.getCpuLives()));
+        humanScoreLabel.setText("YOU - Score: " + gameState.getHumanScore());
+        humanLivesLabel.setText("Lives: " + gameState.getHumanLives());
+        cpuScoreLabel.setText("CPU - Score: " + gameState.getCpuScore());
+        cpuLivesLabel.setText("Lives: " + gameState.getCpuLives());
 
         String msg = gameState.getStatusMessage();
         if (!msg.isEmpty()) {
             statusLabel.setText(msg);
         } else if (gameState.isHumanTurn()) {
-            statusLabel.setText(selectedRow == -1 ? " Your turn! Click a cell." : " Select a value");
+            statusLabel.setText(selectedRow == -1 ? "✨ Your turn! Click a cell." : "🎯 Select a value");
         } else {
-            statusLabel.setText(" CPU thinking (" + currentStrategy + ")...");
+            statusLabel.setText("🤔 CPU thinking (" + currentStrategy + ")...");
         }
     }
 
-    private void updateStatCard(JLabel wrapper, String value) {
-        Component comp = wrapper.getComponent(0);
-        if (comp instanceof JPanel panel) {
-            Component[] components = panel.getComponents();
-            if (components.length >= 2 && components[2] instanceof JLabel valueLabel) {
-                valueLabel.setText(value);
-            }
-        }
-    }
 
-    // ============================================================================
     // GAME END & RESET
-    // ============================================================================
-
     private boolean checkGameEnd() {
         if (gameState.isGameOver()) {
-            printFinalAdjacencyStats();
-
             String winner = gameState.getWinner();
             if (winner == null) winner = "Game Over";
 
@@ -870,21 +697,17 @@ public class TowersssGameGUI extends JFrame {
 
     private void resetGame() {
         initGame();
-        resetAdjacencyList();
         selectedRow = -1;
         selectedCol = -1;
         valueSelectionPanel.setVisible(false);
         reasoningArea.setText("Select a strategy and watch the CPU think...");
         updateHeatMap();
         updateDisplay();
-        statusLabel.setText(" New game started! Your turn.");
+        statusLabel.setText("✨ New game started! Your turn.");
     }
 
-    // ============================================================================
     // MAIN
-    // ============================================================================
-
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> new TowersGameGUI().setVisible(true));
+        SwingUtilities.invokeLater(() -> new TowersssGameGUI().setVisible(true));
     }
 }
