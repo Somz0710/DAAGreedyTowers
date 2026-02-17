@@ -1,114 +1,108 @@
+# 4×4 Towers Puzzle Game
 
+An interactive puzzle game with AI opponents demonstrating greedy algorithms, dynamic programming, and divide-and-conquer strategies. Built with Java Swing.
 
-## Project Overview
-This project implements an interactive **4×4 Towers Puzzle Game** featuring the CPU as a competitive opponent that employs four distinct **greedy algorithm strategies**. Built in Java with Swing GUI, the application demonstrates practical applications of greedy algorithms in game AI and constraint satisfaction problems.
+## About the Game
 
-## What is the Towers Puzzle?
-The Towers Puzzle is a logic game where:
-- Players fill a 4×4 grid with numbers 1-4
-- No number repeats in any row or column
-- Numbers represent building heights
-- Border clues indicate how many "buildings" are visible from each direction (taller buildings obscure shorter ones)
+The Towers Puzzle (also known as Skyscraper) is a logic game where you fill a 4×4 grid with numbers 1–4. Each number appears exactly once per row and column. Numbers represent building heights, and border clues tell you how many buildings are visible from that direction (taller buildings block shorter ones behind them).
 
-## Greedy Algorithm Implementation
-This project showcases **four greedy strategies**, each optimizing different objectives:
+This is a constraint satisfaction problem combined with permutation validation.
 
-### 1. Lives-Greedy Strategy (Survival)
-**Objective:** Minimize risk and maximize survival  
-**Approach:** Prioritizes cells with fewer legal options to reduce guessing  
-**Greedy Choice:** Select moves with highest safety probability
+## AI Strategies
 
-### 2. Completion-Greedy Strategy (Rusher)
-**Objective:** Complete the puzzle as quickly as possible  
-**Approach:** Focuses on nearly-complete rows and columns  
-**Greedy Choice:** Fill cells that maximize completion percentage
+The game features six different AI opponents, each using a different algorithmic approach.
 
-### 3. Score-Greedy Strategy (Gambler)
-**Objective:** Maximize point accumulation  
-**Approach:** Evaluates immediate score gains vs. risk  
-**Greedy Choice:** Select highest potential point value moves
+### Greedy Algorithms
 
-### 4. Constraint-Greedy Strategy (MRV)
-**Objective:** Apply Minimum Remaining Values heuristic  
-**Approach:** Uses CSP principles to reduce branching factor  
-**Greedy Choice:** Fill cells with fewest remaining legal values first
+**Lives-Greedy (Survival)**  
+Minimizes risk by choosing cells with the most legal values. Reduces probability of entering a deadlock state.  
+Time: O(N³) | Space: O(N²) | Optimality: Local
 
-## Technical Details
+**Completion-Greedy (Rusher)**  
+Completes rows and columns as quickly as possible. Prioritizes nearly complete rows/columns.  
+Time: O(N⁴) | Space: O(N²) | Optimality: Local
 
-### Core Algorithm Structure
-Each strategy implements:
-```java
-double evaluateCell(int row, int col)
-// Calculates heuristic score for each empty cell
-// Time Complexity: O(N²) for full board evaluation
+**Score-Greedy (Gambler)**  
+Maximizes immediate score by simulating scoring impact and evaluating row/column completion bonuses.  
+Time: O(N⁵) | Space: O(N²) | Optimality: Local
 
-int[] findBestMove()
-// Selects optimal move based on strategy's greedy criterion
-// Time Complexity: O(N³) worst case
+**Constraint-Greedy (MRV)**  
+Uses Minimum Remaining Values heuristic from CSP. Selects cells with fewest legal values first.  
+Time: O(N³) | Space: O(N²) | Optimality: Local
+
+### Dynamic Programming
+
+Breaks the puzzle into smaller subproblems and stores previously computed board states. Uses memoization to avoid recalculating valid configurations. Builds solution row-by-row with state reuse.  
+Time: O(N² · 2^N) | Space: O(N · 2^N) | Optimality: Global
+
+### Divide and Conquer
+
+Solves the puzzle by recursively dividing into smaller subproblems. Solves one row at a time, recursively solves remaining rows, then validates column constraints and visibility clues.  
+Time: O(N!) | Space: O(N²) | Optimality: Global
+
+## Algorithm Comparison
+
+| Strategy | Time Complexity | Space Complexity | Optimality |
+|----------|-----------------|------------------|------------|
+| Lives-Greedy | O(N³) | O(N²) | Local |
+| Completion-Greedy | O(N⁴) | O(N²) | Local |
+| Score-Greedy | O(N⁵) | O(N²) | Local |
+| MRV-Greedy | O(N³) | O(N²) | Local |
+| Dynamic Programming | O(N² · 2^N) | O(N · 2^N) | Global |
+| Divide & Conquer | O(N!) | O(N²) | Global |
+
+Greedy strategies offer fast performance but may miss optimal solutions. Dynamic programming balances speed and correctness through memoization. Divide and conquer guarantees correctness through exhaustive search.
+
+## Getting Started
+
+**Requirements**
+- JDK 8 or higher
+- Swing (included in JDK)
+
+**Clone the Repository**
+```bash
+git clone https://github.com/yourusername/towers-puzzle-game.git
+cd towers-puzzle-game
 ```
 
-### Key Features
-- **Real-time visualization:** Heat maps show AI decision-making process
-- **Move validation:** O(N) constraint checking per move
-- **Clue verification:** O(N) visibility calculation per direction
-- **Dynamic scoring:** Rewards valid moves, penalizes violations
-- **Deadlock detection:** Identifies no-legal-moves scenarios
-
-## How to Run
-
-### Requirements
-- Java Development Kit (JDK) 8 or higher
-- Standard Swing library (included in JDK)
-
-### Execution
+**Compile**
 ```bash
-# Compile
 javac game/*.java
+```
 
-# Run
+**Run**
+```bash
 java game.TowersssGameGUI
 ```
 
 ## Project Structure
+
 ```
 src/game/
-├── CellSorter.java              # Shared intelligent sorting with center-preference tie-breaking
-├── GameCore.java                # Core game logic and state management
-├── PuzzleGenerator.java         # Generates valid Skyscraper puzzles with consistent clues
-├── StrategyCompletion.java      # Completion-Greedy (Rusher): Prioritizes nearly complete rows/columns
-├── StrategyLives.java           # Survival-Greedy: Focuses on maximizing legal options to preserve lives
-├── StrategyMRV.java             # Constraint-Greedy (MRV): Minimum Remaining Values heuristic
-├── StrategyScore.java           # Score-Greedy (Gambler): Maximizes immediate points from completions
-├── TowersssGameGUI.java         # Main GUI with modern design, heat map, CPU reasoning, and strategy selector
-└── README.md                    # Project documentation (this file)
+├── CellSorter.java
+├── GameCore.java
+├── PuzzleGenerator.java
+├── StrategyCompletion.java
+├── StrategyLives.java
+├── StrategyMRV.java
+├── StrategyScore.java
+├── StrategyDP.java
+├── StrategyDivideConquer.java
+└── TowersssGameGUI.java
 ```
 
-## Game Mechanics
-- **Scoring:** +10 per correct move, +20 for completing rows/columns
-- **Lives System:** Start with 100 lives, lose 5 per invalid move
-- **Victory:** Complete board first, eliminate opponent, or achieve higher score
-- **Turn-based:** Human vs. CPU with selectable strategies
+## What This Project Demonstrates
 
-## Educational Significance
-This project demonstrates:
-1. **Greedy algorithm design** with multiple optimization criteria
-2. **Heuristic evaluation** in constrained environments
-3. **Trade-offs** between different greedy approaches (optimal vs. practical)
-4. **Algorithm visualization** for understanding decision-making processes
+- Greedy vs optimal strategies
+- Heuristic vs exhaustive search
+- Memoization in constraint problems
+- Recursive problem decomposition
+- Trade-offs between speed and correctness
+- Visualization of algorithmic reasoning
 
-## Algorithm Analysis
-| Strategy | Time Complexity | Space Complexity | Optimality |
-|----------|----------------|------------------|------------|
-| Lives    | O(N³)          | O(N²)            | Local      |
-| Completion | O(N^4)        | O(N²)            | Local      |
-| Score    | O(N^5)          | O(N²)            | Local      |
-| MRV      | O(N³)          | O(N²)            | Local      |
+The interactive GUI makes abstract algorithmic concepts tangible and observable in real-time.
 
-*Note: Greedy algorithms provide locally optimal choices but don't guarantee global optimality.*
+## Course Information
 
-## Conclusion
-This implementation effectively illustrates how greedy algorithms can be applied to game AI, demonstrating that different greedy criteria lead to distinct behaviors and outcomes. The visual interface makes the abstract algorithmic concepts tangible and observable in real-time.
-
----
 **Course:** Design and Analysis of Algorithms (23CSE211)  
-**Focus:** Greedy Algorithms & Heuristic Problem Solving
+**Topics:** Greedy Algorithms, Dynamic Programming, Divide and Conquer
