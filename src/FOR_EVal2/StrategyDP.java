@@ -1,27 +1,27 @@
 package FOR_EVal2;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-/*  STRATEGY  :  Dynamic Programming                                         
- *  APPROACH  :  Memoised sub-problem decomposition.                         
- *               The board is flattened into a bitmask (filled cells).       
- *               For every empty cell we compute the "DP value" = the best   
- *               cumulative score reachable from that state, stored in a     
- *               HashMap<Long, Double> memo table.                            
- *               Heat-map uses the top-1 DP value per cell.   */
+/**
+ * ┌─────────────────────────────────────────────────────────────────────────┐
+ *  STRATEGY  :  Dynamic Programming                                         │
+ *  APPROACH  :  Memoised sub-problem decomposition.                         │
+ *               The board is flattened into a bitmask (filled cells).       │
+ *               For every empty cell we compute the "DP value" = the best   │
+ *               cumulative score reachable from that state, stored in a     │
+ *               HashMap<Long, Double> memo table.                            │
+ *               Heat-map uses the top-1 DP value per cell.                  │
+ * └─────────────────────────────────────────────────────────────────────────┘
+ */
 public class StrategyDP {
 
-    // core fields
+    // ── core fields ──────────────────────────────────────────────────────────
     private final GameState state;
     private final int       SIZE;
 
-
-    //memo table  :  board-state key  →  best achievable score 
+    /** memo table  :  board-state key  →  best achievable score */
     private final Map<Long, Double> memo = new HashMap<>();
-    
 
-    // reward constants 
+    // ── reward constants (same philosophy as StrategyScore) ──────────────────
     private static final double BASE_REWARD          =  1.0;
     private static final double ROW_COMPLETE_REWARD  = 12.0;
     private static final double COL_COMPLETE_REWARD  = 12.0;
@@ -30,15 +30,16 @@ public class StrategyDP {
     private static final double LOW_OPTIONS_PENALTY  = -6.0;
     private static final double FUTURE_DEPTH_WEIGHT  =  0.6;   // discount per look-ahead ply
 
-
-     // ── constructor 
+    // ── constructor ──────────────────────────────────────────────────────────
     public StrategyDP(GameState state) {
         this.state = state;
         this.SIZE  = state.getSize();
     }
 
-
+    // ════════════════════════════════════════════════════════════════════════
     //  PUBLIC API
+    // ════════════════════════════════════════════════════════════════════════
+
     /**
      * Find the globally best (row, col, value) triple using DP look-ahead.
      * Returns int[]{row, col, value} or null if no legal move exists.
@@ -95,7 +96,10 @@ public class StrategyDP {
         return max;
     }
 
+    // ════════════════════════════════════════════════════════════════════════
     //  DP CORE
+    // ════════════════════════════════════════════════════════════════════════
+
     /**
      * Recursive memoised DP.
      * Returns the best future reward from the given board state.
@@ -132,8 +136,11 @@ public class StrategyDP {
         memo.put(key, best);
         return best;
     }
-    
+
+    // ════════════════════════════════════════════════════════════════════════
     //  REWARD FUNCTION  (shared by immediate + future scoring)
+    // ════════════════════════════════════════════════════════════════════════
+
     private double immediateReward(int[][] grid, int row, int col, int value) {
         double score = BASE_REWARD;
 
@@ -158,9 +165,10 @@ public class StrategyDP {
         return score;
     }
 
-
-        
+    // ════════════════════════════════════════════════════════════════════════
     //  VISIBILITY  (Towers clue validation)
+    // ════════════════════════════════════════════════════════════════════════
+
     /** Check the left/right clues for a completed row. */
     private boolean rowVisibilityValid(int[][] grid, int row) {
         int[] leftClues  = state.getLeftClues();
@@ -202,8 +210,10 @@ public class StrategyDP {
         return visible;
     }
 
-
+    // ════════════════════════════════════════════════════════════════════════
     //  UTILITY
+    // ════════════════════════════════════════════════════════════════════════
+
     private boolean isRowComplete(int[][] g, int r) {
         for (int c = 0; c < SIZE; c++) if (g[r][c] == 0) return false;
         return true;
@@ -239,10 +249,10 @@ public class StrategyDP {
         return key;
     }
 
-
-}
-
+    // ════════════════════════════════════════════════════════════════════════
     //  EXPLANATION TEXT  (shown in reasoning panel)
+    // ════════════════════════════════════════════════════════════════════════
+
     private String buildExplanation(MoveEval best, List<MoveEval> all) {
         int explored = all.size();
         int memoHits = memo.size();
@@ -268,7 +278,9 @@ public class StrategyDP {
         );
     }
 
+    // ════════════════════════════════════════════════════════════════════════
     //  INNER DATA CLASS
+    // ════════════════════════════════════════════════════════════════════════
 
     private static class MoveEval {
         final int    row, col, value;
@@ -281,12 +293,5 @@ public class StrategyDP {
         }
 
         double total() { return total; }
+    }
 }
-
-
-
-
-
-
-
-
