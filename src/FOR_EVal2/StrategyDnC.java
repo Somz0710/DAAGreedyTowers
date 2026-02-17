@@ -27,13 +27,7 @@ public class StrategyDnC {
         this.SIZE  = state.getSize();
     }
 
-    // ════════════════════════════════════════════════════════
     //  PUBLIC API
-    // ════════════════════════════════════════════════════════
-
-    /**
-     * Find best move by scanning entire board.
-     */
 public int[] findBestMove() {
         // Divide board into quadrants; each returns its local champion.
         // Conquer: pick the global best among all champions.
@@ -120,9 +114,8 @@ public int[] findBestMove() {
 
         return max;
     }
-// ════════════════════════════════════════════════════════════════════════
+
     //  DIVIDE  –  score every legal move inside one quadrant
-    // ════════════════════════════════════════════════════════════════════════
 
     private List<MoveEval> solveQuadrant(int rStart, int rEnd, int cStart, int cEnd) {
         List<MoveEval> moves = new ArrayList<>();
@@ -158,10 +151,7 @@ public int[] findBestMove() {
         return moves;
     }
 
-    // ════════════════════════════════════════════════════════════════════════
     //  LOCAL SCORE  (immediate heuristic for a single move)
-    // ════════════════════════════════════════════════════════════════════════
-
     private double localScore(int[][] grid, int row, int col, int value) {
         double score = BASE_REWARD;
 
@@ -185,9 +175,7 @@ public int[] findBestMove() {
         return score;
     }
 
-    // ════════════════════════════════════════════════════════════════════════
     //  VISIBILITY  (Towers clue validation)
-    // ════════════════════════════════════════════════════════════════════════
 
     private boolean rowVisibilityValid(int[][] grid, int row) {
         int[] left  = state.getLeftClues();
@@ -217,10 +205,7 @@ public int[] findBestMove() {
         return visible;
     }
 
-    // ════════════════════════════════════════════════════════════════════════
     //  UTILITY
-    // ════════════════════════════════════════════════════════════════════════
-
     private boolean isRowComplete(int[][] g, int r) {
         for (int c = 0; c < SIZE; c++) if (g[r][c] == 0) return false;
         return true;
@@ -258,9 +243,7 @@ public int[] findBestMove() {
         return copy;
     }
 
-    // ════════════════════════════════════════════════════════════════════════
     //  EXPLANATION TEXT
-    // ════════════════════════════════════════════════════════════════════════
 
     private String buildExplanation(MoveEval best, List<String> quadSummaries, int totalMoves) {
         StringBuilder sb = new StringBuilder();
@@ -284,10 +267,7 @@ public int[] findBestMove() {
         return sb.toString();
     }
 
-    // ════════════════════════════════════════════════════════════════════════
     //  INNER DATA CLASS
-    // ════════════════════════════════════════════════════════════════════════
-
     private static class MoveEval {
         final int    row, col, value, legalOpts;
         final double score;
@@ -302,5 +282,6 @@ public int[] findBestMove() {
 
         double score() { return score; }
     }
+
 
 
