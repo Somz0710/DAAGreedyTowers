@@ -37,10 +37,8 @@ public class StrategyDP {
         this.SIZE  = state.getSize();
     }
 
-    // ════════════════════════════════════════════════════════════════════════
-    //  PUBLIC API
-    // ════════════════════════════════════════════════════════════════════════
 
+    //  PUBLIC API
     /**
      * Find the globally best (row, col, value) triple using DP look-ahead.
      * Returns int[]{row, col, value} or null if no legal move exists.
@@ -97,10 +95,7 @@ public class StrategyDP {
         return max;
     }
 
-    // ════════════════════════════════════════════════════════════════════════
     //  DP CORE
-    // ════════════════════════════════════════════════════════════════════════
-
     /**
      * Recursive memoised DP.
      * Returns the best future reward from the given board state.
@@ -139,7 +134,6 @@ public class StrategyDP {
     }
     
     //  REWARD FUNCTION  (shared by immediate + future scoring)
-
     private double immediateReward(int[][] grid, int row, int col, int value) {
         double score = BASE_REWARD;
 
@@ -248,10 +242,7 @@ public class StrategyDP {
 
 }
 
-    // ════════════════════════════════════════════════════════════════════════
     //  EXPLANATION TEXT  (shown in reasoning panel)
-    // ════════════════════════════════════════════════════════════════════════
-
     private String buildExplanation(MoveEval best, List<MoveEval> all) {
         int explored = all.size();
         int memoHits = memo.size();
@@ -277,9 +268,7 @@ public class StrategyDP {
         );
     }
 
-    // ════════════════════════════════════════════════════════════════════════
     //  INNER DATA CLASS
-    // ════════════════════════════════════════════════════════════════════════
 
     private static class MoveEval {
         final int    row, col, value;
@@ -292,8 +281,8 @@ public class StrategyDP {
         }
 
         double total() { return total; }
-    }
 }
+
 
 
 
