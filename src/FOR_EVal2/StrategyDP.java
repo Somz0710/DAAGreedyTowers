@@ -285,6 +285,25 @@ public class StrategyDP {
         );
     }
 
+    // ════════════════════════════════════════════════════════════════════════
+    //  INNER DATA CLASS
+    // ════════════════════════════════════════════════════════════════════════
+
+    private static class MoveEval {
+        final int    row, col, value;
+        final double immediate, future, total;
+
+        MoveEval(int row, int col, int value,
+                 double immediate, double future, double total) {
+            this.row = row; this.col = col; this.value = value;
+            this.immediate = immediate; this.future = future; this.total = total;
+        }
+
+        double total() { return total; }
+    }
+}
+
+
 
 
 
