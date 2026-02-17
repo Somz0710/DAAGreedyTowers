@@ -81,6 +81,22 @@ public class StrategyDP {
         return new int[]{ best.row, best.col, best.value };
     }
 
+    /**
+     * Heat-map score for a single cell (max DP value across legal values).
+     */
+    public double evaluateCell(int row, int col) {
+        if (state.getGrid()[row][col] != 0) return 0.0;
+        double max = 0;
+        for (int v = 1; v <= SIZE; v++) {
+            if (state.getGraph().hasConflict(state.getGrid(), row, col, v)) continue;
+            int[][] after = deepCopy(state.getGrid());
+            after[row][col] = v;
+            double score = immediateReward(after, row, col, v)
+                    + dpValue(after, gridKey(after), 1) * 0.5; // cheaper for heat-map
+            max = Math.max(max, score);
+        }
+        return max;
+    }
 
 
 
@@ -198,4 +214,5 @@ public class StrategyDP {
 
 
 }
+
 
