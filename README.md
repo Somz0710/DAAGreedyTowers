@@ -1,216 +1,81 @@
-# 🏗️ 4×4 Towers Puzzle Game  
-### Greedy, Dynamic Programming & Divide-and-Conquer AI
+# 4×4 Towers Puzzle Game
 
----
+An interactive puzzle game with AI opponents demonstrating greedy algorithms, dynamic programming, and divide-and-conquer strategies. Built with Java Swing.
 
-## 📌 Project Overview
-This project implements an interactive **4×4 Towers (Skyscraper) Puzzle Game** featuring a CPU opponent that employs multiple algorithmic strategies.
+## About the Game
 
-Built in **Java using Swing GUI**, the application demonstrates practical applications of:
+The Towers Puzzle (also known as Skyscraper) is a logic game where you fill a 4×4 grid with numbers 1–4. Each number appears exactly once per row and column. Numbers represent building heights, and border clues tell you how many buildings are visible from that direction (taller buildings block shorter ones behind them).
 
-- Greedy Algorithms  
-- Dynamic Programming  
-- Divide and Conquer  
-- Constraint Satisfaction Problems (CSP)  
-- Heuristic Game AI  
+This is a constraint satisfaction problem combined with permutation validation.
 
----
+## AI Strategies
 
-## 🧩 What is the Towers Puzzle?
+The game features six different AI opponents, each using a different algorithmic approach.
 
-The Towers Puzzle is a logic game where:
+### Greedy Algorithms
 
-- Players fill a 4×4 grid with numbers **1–4**
-- No number repeats in any row or column
-- Numbers represent building heights
-- Border clues indicate how many "buildings" are visible from each direction  
-  (Taller buildings obscure shorter ones)
+**Lives-Greedy (Survival)**  
+Minimizes risk by choosing cells with the most legal values. Reduces probability of entering a deadlock state.  
+Time: O(N³) | Space: O(N²) | Optimality: Local
 
-It is essentially a **constraint satisfaction + permutation validation problem**.
+**Completion-Greedy (Rusher)**  
+Completes rows and columns as quickly as possible. Prioritizes nearly complete rows/columns.  
+Time: O(N⁴) | Space: O(N²) | Optimality: Local
 
----
+**Score-Greedy (Gambler)**  
+Maximizes immediate score by simulating scoring impact and evaluating row/column completion bonuses.  
+Time: O(N⁵) | Space: O(N²) | Optimality: Local
 
-# 🟢 Greedy Algorithm Implementation
+**Constraint-Greedy (MRV)**  
+Uses Minimum Remaining Values heuristic from CSP. Selects cells with fewest legal values first.  
+Time: O(N³) | Space: O(N²) | Optimality: Local
 
-This project initially implemented **four greedy strategies**, each optimizing different objectives.
+### Dynamic Programming
 
----
+Breaks the puzzle into smaller subproblems and stores previously computed board states. Uses memoization to avoid recalculating valid configurations. Builds solution row-by-row with state reuse.  
+Time: O(N² · 2^N) | Space: O(N · 2^N) | Optimality: Global
 
-## 1️⃣ Lives-Greedy Strategy (Survival)
+### Divide and Conquer
 
-**Objective:** Minimize risk and maximize survival  
+Solves the puzzle by recursively dividing into smaller subproblems. Solves one row at a time, recursively solves remaining rows, then validates column constraints and visibility clues.  
+Time: O(N!) | Space: O(N²) | Optimality: Global
 
-**Approach:**  
-- Evaluate all empty cells  
-- Prefer cells with maximum legal values  
-- Reduce deadlock probability  
+## Algorithm Comparison
 
-**Greedy Choice:**  
-Select the safest move with highest flexibility.
+| Strategy | Time Complexity | Space Complexity | Optimality |
+|----------|-----------------|------------------|------------|
+| Lives-Greedy | O(N³) | O(N²) | Local |
+| Completion-Greedy | O(N⁴) | O(N²) | Local |
+| Score-Greedy | O(N⁵) | O(N²) | Local |
+| MRV-Greedy | O(N³) | O(N²) | Local |
+| Dynamic Programming | O(N² · 2^N) | O(N · 2^N) | Global |
+| Divide & Conquer | O(N!) | O(N²) | Global |
 
-**Time Complexity:** `O(N³)`  
-**Space Complexity:** `O(N²)`  
-**Optimality:** Local
+Greedy strategies offer fast performance but may miss optimal solutions. Dynamic programming balances speed and correctness through memoization. Divide and conquer guarantees correctness through exhaustive search.
 
----
+## Getting Started
 
-## 2️⃣ Completion-Greedy Strategy (Rusher)
+**Requirements**
+- JDK 8 or higher
+- Swing (included in JDK)
 
-**Objective:** Complete rows and columns quickly  
-
-**Approach:**  
-- Prioritize nearly complete rows/columns  
-- Fill cells that maximize completion percentage  
-
-**Greedy Choice:**  
-Choose move that increases completion ratio the most.
-
-**Time Complexity:** `O(N⁴)`  
-**Space Complexity:** `O(N²)`  
-**Optimality:** Local
-
----
-
-## 3️⃣ Score-Greedy Strategy (Gambler)
-
-**Objective:** Maximize immediate score  
-
-**Approach:**  
-- Simulate scoring impact  
-- Evaluate row/column completion bonus  
-- Compare risk vs reward  
-
-**Greedy Choice:**  
-Select highest immediate point gain.
-
-**Time Complexity:** `O(N⁵)`  
-**Space Complexity:** `O(N²)`  
-**Optimality:** Local
-
----
-
-## 4️⃣ Constraint-Greedy Strategy (MRV)
-
-(Minimum Remaining Values Heuristic)
-
-**Objective:** Reduce branching factor  
-
-**Approach:**  
-- Select cell with fewest legal values  
-- Apply CSP principles  
-
-**Greedy Choice:**  
-Fill cell with minimum remaining legal values first.
-
-**Time Complexity:** `O(N³)`  
-**Space Complexity:** `O(N²)`  
-**Optimality:** Local (Heuristic-based)
-
----
-
-# 🔵 Phase 2: Advanced Algorithmic Strategies
-
-To extend the project beyond greedy heuristics, two advanced approaches were implemented:
-
----
-
-## 5️⃣ Dynamic Programming Strategy
-
-**Objective:** Avoid recomputation and optimize subproblem reuse.
-
-### Core Idea
-- Break puzzle into smaller subproblems
-- Store previously computed board states
-- Use memoization to avoid recalculating valid configurations
-
-### DP State May Include:
-- Current row index  
-- Column usage mask  
-- Used numbers mask  
-- Partial visibility validation  
-
-### Working Principle:
-1. Generate valid row permutations  
-2. Use memoization for partial board states  
-3. Build solution row-by-row  
-4. Reuse previously computed configurations  
-
-### Time Complexity:
-- Row permutations: `O(N!)`  
-- DP transitions: `O(N² · 2^N)`  
-- Optimized practical complexity: `≈ O(N² · 2^N)`
-
-### Space Complexity:
-`O(N · 2^N)`
-
-### Optimality:
-Global (finds correct solution if fully explored)
-
----
-
-## 6️⃣ Divide and Conquer Strategy
-
-**Objective:** Solve puzzle by recursively dividing into smaller subproblems.
-
-### Core Idea
-1. Divide:
-   - Solve one row at a time  
-
-2. Conquer:
-   - Recursively solve remaining rows  
-
-3. Combine:
-   - Validate column constraints  
-   - Validate visibility clues  
-
-### Recurrence:
-T(N) = N × T(N-1)
-
-### Time Complexity:
-`O(N!)`
-
-### Space Complexity:
-`O(N²)`
-
-### Optimality:
-Global (exhaustive search)
-
----
-
-# ⚙️ Core Algorithm Structure
-
-Each greedy strategy implements:
-
-```java
-double evaluateCell(int row, int col);
-// Calculates heuristic score
-
-int[] findBestMove();
-// Selects best move based on strategy
+**Clone the Repository**
+```bash
+git clone https://github.com/yourusername/towers-puzzle-game.git
+cd towers-puzzle-game
 ```
 
-DP & D&C strategies implement:
-
-```java
-boolean solveBoard(int row);
-// Recursive or memoized solver
+**Compile**
+```bash
+javac game/*.java
 ```
 
----
+**Run**
+```bash
+java game.TowersssGameGUI
+```
 
-## 🎮 Key Features
-
-- Real-time visualization  
-- Heat map showing AI decision-making  
-- O(N) constraint checking per move  
-- O(N) visibility calculation per direction  
-- Dynamic scoring system  
-- Deadlock detection  
-- Strategy selector for CPU  
-
----
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 src/game/
@@ -223,73 +88,21 @@ src/game/
 ├── StrategyScore.java
 ├── StrategyDP.java
 ├── StrategyDivideConquer.java
-├── TowersssGameGUI.java
-└── README.md
+└── TowersssGameGUI.java
 ```
 
----
+## What This Project Demonstrates
 
-## ▶️ How to Run
-
-### Requirements
-- JDK 8 or higher  
-- Swing (included in JDK)
-
-### Compile
-```bash
-javac game/*.java
-```
-
-### Run
-```bash
-java game.TowersssGameGUI
-```
-
----
-
-## 📊 Algorithm Comparison
-
-| Strategy              | Time Complexity     | Space Complexity | Optimality |
-|----------------------|--------------------|------------------|------------|
-| Lives-Greedy         | O(N³)              | O(N²)            | Local      |
-| Completion-Greedy    | O(N⁴)              | O(N²)            | Local      |
-| Score-Greedy         | O(N⁵)              | O(N²)            | Local      |
-| MRV-Greedy           | O(N³)              | O(N²)            | Local      |
-| Divide & Conquer     | O(N!)              | O(N²)            | Global     |
-| Dynamic Programming  | O(N² · 2^N)        | O(N · 2^N)       | Global     |
-
----
-
-## 🎓 Educational Significance
-
-This project demonstrates:
-
-- Greedy vs Optimal strategies  
-- Heuristic vs Exhaustive search  
-- Memoization in constraint problems  
-- Recursive problem decomposition  
-- Trade-offs between speed and correctness  
-- Visualization of algorithmic reasoning  
-
----
-
-## 🏁 Conclusion
-
-This project evolved from a Greedy-based AI into a complete comparative study of:
-
-- Greedy Algorithms  
-- Dynamic Programming  
-- Divide and Conquer  
-
-It highlights the trade-offs between:
-
-- Speed vs Completeness  
-- Local vs Global Optimization  
-- Heuristics vs Exact Methods  
+- Greedy vs optimal strategies
+- Heuristic vs exhaustive search
+- Memoization in constraint problems
+- Recursive problem decomposition
+- Trade-offs between speed and correctness
+- Visualization of algorithmic reasoning
 
 The interactive GUI makes abstract algorithmic concepts tangible and observable in real-time.
 
----
+## Course Information
 
 **Course:** Design and Analysis of Algorithms (23CSE211)  
-**Focus:** Greedy Algorithms, Dynamic Programming & Divide and Conquer  
+**Topics:** Greedy Algorithms, Dynamic Programming, Divide and Conquer
