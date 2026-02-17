@@ -1,5 +1,4 @@
 package FOR_EVal2;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -138,14 +137,7 @@ public class StrategyDP {
         memo.put(key, best);
         return best;
     }
-
-
-
-
-
-
-
-
+    
     //  REWARD FUNCTION  (shared by immediate + future scoring)
 
     private double immediateReward(int[][] grid, int row, int col, int value) {
@@ -302,6 +294,7 @@ public class StrategyDP {
         double total() { return total; }
     }
 }
+
 
 
 
