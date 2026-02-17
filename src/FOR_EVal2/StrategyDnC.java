@@ -34,38 +34,67 @@ public class StrategyDnC {
     /**
      * Find best move by scanning entire board.
      */
-    public int[] findBestMove() {
+public int[] findBestMove() {
+        // Divide board into quadrants; each returns its local champion.
+        // Conquer: pick the global best among all champions.
+        int half = SIZE / 2;
 
-        double bestScore = Double.NEGATIVE_INFINITY;
-        int bestRow = -1, bestCol = -1, bestValue = -1;
+        // Four quadrant regions  [rowStart, rowEnd, colStart, colEnd]
+        int[][] quads = {
+                { 0,    half, 0,    half },   // top-left
+                { 0,    half, half, SIZE },   // top-right
+                { half, SIZE, 0,    half },   // bottom-left
+                { half, SIZE, half, SIZE }    // bottom-right
+        };
 
-        for (int r = 0; r < SIZE; r++) {
-            for (int c = 0; c < SIZE; c++) {
+        List<MoveEval> allCandidates   = new ArrayList<>();
+        List<MoveEval> quadChampions   = new ArrayList<>();
+        List<String>   quadSummaries   = new ArrayList<>();
+        int[]          quadEmptyCounts = new int[4];
 
-                if (state.getGrid()[r][c] != 0) continue;
+        for (int q = 0; q < 4; q++) {
+            int rS = quads[q][0], rE = quads[q][1];
+            int cS = quads[q][2], cE = quads[q][3];
 
-                for (int v = 1; v <= SIZE; v++) {
+            List<MoveEval> quadMoves = solveQuadrant(rS, rE, cS, cE);
+            quadEmptyCounts[q] = emptyInQuadrant(rS, rE, cS, cE);
+            allCandidates.addAll(quadMoves);
 
-                    if (state.getGraph().hasConflict(state.getGrid(), r, c, v))
-                        continue;
-
-                    int[][] after = deepCopy(state.getGrid());
-                    after[r][c] = v;
-
-                    double score = localScore(after, r, c, v);
-
-                    if (score > bestScore) {
-                        bestScore = score;
-                        bestRow = r;
-                        bestCol = c;
-                        bestValue = v;
-                    }
+            if (!quadMoves.isEmpty()) {
+                quadMoves.sort(Comparator.comparingDouble(MoveEval::score).reversed());
+                MoveEval champ = quadMoves.get(0);
+                // bonus for controlling the richest quadrant
+                if (quadEmptyCounts[q] == maxOf(quadEmptyCounts)) {
+                    champ = new MoveEval(champ.row, champ.col, champ.value,
+                            champ.score + QUAD_CONTROL_BONUS,
+                            champ.legalOpts, champ.rowDone, champ.colDone);
                 }
+                quadChampions.add(champ);
+                quadSummaries.add(String.format(
+                        "  Q%d [r%d-%d c%d-%d]: best=%d@(%d,%d) score=%.1f empty=%d",
+                        q+1, rS+1, rE, cS+1, cE,
+                        champ.value, champ.row+1, champ.col+1,
+                        champ.score, quadEmptyCounts[q]
+                ));
+            } else {
+                quadSummaries.add(String.format(
+                        "  Q%d [r%d–%d c%d–%d]: NO MOVES (empty=%d)",
+                        q+1, rS+1, rE, cS+1, cE, quadEmptyCounts[q]
+                ));
             }
         }
 
-        if (bestRow == -1) return null;
-        return new int[]{ bestRow, bestCol, bestValue };
+        if (quadChampions.isEmpty()) return null;
+
+        // Merge step: pick the global champion
+        quadChampions.sort(Comparator
+                .comparingDouble(MoveEval::score).reversed()
+                .thenComparingInt(m -> -m.legalOpts));   // more options = more control
+
+        MoveEval best = quadChampions.get(0);
+        state.setCpuReasoningExplanation(
+                buildExplanation(best, quadSummaries, allCandidates.size()));
+        return new int[]{ best.row, best.col, best.value };
     }
 
     /**
@@ -146,3 +175,4 @@ public class StrategyDnC {
         return copy;
     }
 }
+
